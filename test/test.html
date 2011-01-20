@@ -1,0 +1,142 @@
+<html>
+<script>
+var off = 0;
+var date = "";
+Date.prototype.toString = function() {
+    return date;
+}
+Date.prototype.getTimezoneOffset = function() {
+    return off;
+}
+</script>
+<script src="../src/date-en-US.js"></script>
+<script src="../src/jquery-1.4.4.min.js"></script>
+<script src="../src/jquery.timezone.js"></script>
+<script src="jsTester.js"></script>
+<script>
+var $tempTests;
+var $t1;
+function setUp() {
+    $t1 = $('#t1');
+    $tempTests = $('#tests').clone();
+}
+function tearDown() {
+    $('#tests').replaceWith($tempTests);
+}
+function common() {
+    var tz;
+    $t1.timezone({callback: function(data) {tz = data}});
+    assertEquals('CST', (tz.standard || tz).abbr);
+    assertEquals('Central Standard Time', (tz.standard || tz).name);
+}
+function testFormat() {
+    off = 0;
+    date = 'Wed Nov 10 2010 12:00:00 GMT+0000 (GMT)';
+    $t1.timezone({format: 'hh:mm:ss tt'});
+    assertEquals('08:00:00 PM', $t1.text());
+}
+function testStandardChromeLinux() {
+    date = 'Wed Nov 10 2010 12:00:00 GMT-0500 (CST)';
+    off = 300;
+    common();
+}
+function testDaylightChromeLinux() {
+    date = 'Mon Nov 1 2010 12:00:00 GMT-0500 (CDT)';
+    off = 300;
+    common();
+}
+function testStandardFirefoxLinux() {
+    date = 'Wed Nov 10 2010 12:00:00 GMT-0500 (CST)';
+    off = 300;
+    common();
+}
+function testDaylightFirefoxLinux() {
+    date = 'Mon Nov 1 2010 12:00:00 GMT-0500 (CST)';
+    off = 300;
+    common();
+}
+//OPERA DOESNT DISPLAY TIMEZONE
+function testDaylightOperaLinux() {
+    date = 'Mon Nov 01 2010 17:22:48 GMT-0500';
+    off = 300;
+    $t1.timezone({callback: function(data) {tz = data}});
+    assertEquals(undefined, (tz.standard || tz).abbr);
+    assertEquals(-5, tz.offset);
+}
+function testStandardOperaLinux() {
+    date = 'Wed Nov 10 2010 17:22:48 GMT-0600';
+    off = 360;
+    $t1.timezone({callback: function(data) {tz = data}});
+    assertEquals(undefined, (tz.standard || tz).abbr);
+    assertEquals(-6, tz.offset);
+}
+function testDaylightFirefoxWindows() {
+    date = 'Mon Nov 01 2010 12:00:00 GMT-0500 (Central Standard Time)';
+    off = 300;
+    common();
+}
+function testStandardFirefoxWindows() {
+    date = 'Wed Nov 10 2010 12:00:00 GMT-0600 (Central Standard Time)';
+    off = 360;
+    common();
+}
+function testDaylightIE() {
+    date = 'Mon Nov 01 12:00:00 CST 2010';
+    off = 300;
+    common();
+}
+function testStandardIE() {
+    date = 'Wed Nov 10 12:00:00 CST 2010';
+    off = 360;
+    common();
+}
+function testPageOffset() {
+    //making it 8PM eastern on page, test central conversion
+    off = 360;
+    date = 'Wed Nov 10 2010 12:00:00 GMT+0000 (CST)';
+    $t1.timezone({pageOffset: -5});
+    assertEquals('7:00 PM', $t1.text());
+}
+function testPageTzSimpleStandard() {
+    //standard time, 8PM eastern, test central conversion
+    off = 360;
+    $t1.text('Wed Nov 10, 2010 8:00PM');
+    $t1.timezone({pageTz: 'EST'});
+    assertEquals('7:00 PM', $t1.text());
+}
+//TEST THAT WE CAN SELECT THE TIMEZONE
+function testTimeZoneSelectAndPageTimezone() {
+    $t1.text('Wed Nov 10, 2010 8:00PM');
+    $t1.timezone({pageTz: 'EST', tz: 'EST'});
+    assertEquals('8:00 PM', $t1.text());
+}
+function testTimeZoneSelectAndPageTimezone2() {
+    $t1.text('Wed Nov 10, 2010 8:00PM');
+    $t1.timezone({pageTz: 'EST', tz: 'PST'});
+    assertEquals('5:00 PM', $t1.text());
+}
+function testTimeZoneSelectAndPageTimezone3() {
+    $t1.text('Wed Nov 01, 2010 8:00PM');
+    $t1.timezone({pageTz: 'EST', tz: 'PST', callback: function(r) {
+        assertEquals('PST', r.abbr);
+    }});
+    assertEquals('5:00 PM', $t1.text());
+}
+function testPageTzAndTz() {
+    $t1.timezone({pageTz: 'EST', tz: 'PST'});
+    assertEquals('5:00 PM', $t1.text());
+}
+function testConvertWithName() {
+    $t1.timezone({tz: 'Central Standard Time'});
+    off = 0;
+    date = 'Wed Nov 10 2010 12:00:00 GMT+0000 (GMT)';
+    assertEquals('2:00 PM', $t1.text());
+}
+</script>
+<body>
+<div id='tests' style='display: none;'>
+<div id='t1'>8:00 PM</div>
+</div>
+<div id='results'></div>
+</body>
+</html>
